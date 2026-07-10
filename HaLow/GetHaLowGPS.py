@@ -1,12 +1,13 @@
+''' test program to fetch the GPS coordinates via WiFi/HaLow.
+'''
+
 import socket
+import sys
 
-HOST = '10.0.4.39'
-
-#def connect_to_server(host='10.0.4.34', port=7007):
-def connect_to_server(host=HOST, port=7007):
+def GetHaLowGPS(host='10.0.4.34', port=7007):
     # Create a TCP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+
     try:
         sock.connect((host, port))
         print(f"Connected to {host}:{port}")
@@ -46,4 +47,7 @@ def connect_to_server(host=HOST, port=7007):
         sock.close()
 
 if __name__ == "__main__":
-    connect_to_server()
+    HOST = '10.0.4.39'
+    if len(sys.argv) > 1:
+        HOST=sys.argv[1]
+    GetHaLowGPS(host=HOST)
