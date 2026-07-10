@@ -56,15 +56,15 @@ def main():
                 while True:
                     data = conn.recv(BUFFER_SIZE)
                     if not data:
-                        print("Client Disconnected")
+                        #print("Client Disconnected")
                         break
 
                     command = data.decode("utf-8", errors="replace")
-                    print(f"Received: {command!r}")
+                    #print(f"Received: {command!r}")
 
                     response = handle_command(command)
                     conn.sendall((response + "\n").encode("utf-8"))
-                    print(f"Sent: {response!r}")
+                    #print(f"Sent: {response!r}")
 
         except KeyboardInterrupt:
             print("\nShutting down server.")
