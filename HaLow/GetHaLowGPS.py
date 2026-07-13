@@ -59,7 +59,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1: # use the IP address on the command line
         HOST=sys.argv[1]
     f = open("HaLow.csv","a")
-    print(f"Time,Lat,Lon,Alt,Sats, GetHaLowGPS.py {datetime.now()}", file=f)
+    print(f"Time,Lat,Lon,Alt,Sats,Zero, GetHaLowGPS.py {datetime.now()}", file=f)
 
     try:
         while(True):
@@ -81,7 +81,7 @@ if __name__ == "__main__":
                             alt=float(nemalist[9])
                             print(f"sats={nemalist[7]} Lon={lon} Lat={lat} Alt={alt}")
                             now=datetime.now()
-                            print(f"{now.time()},{lat:.6f},{lon:.6f},{alt:.2f},{nemalist[7]}",file=f)
+                            print(f"{now.time()},{lat:.6f},{lon:.6f},{alt:.2f},{nemalist[7]},0",file=f)
     except KeyboardInterrupt:
         print("done")
 
