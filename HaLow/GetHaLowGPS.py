@@ -6,7 +6,7 @@ import sys
 import time
 from datetime import datetime
 
-def GetHaLowGPS(host='10.0.4.34', port=7007):
+def GetHaLowGPS(host='192.168.0.30', port=7007):
     ''' Open a TCP socket and send 'GPS' to the host IP address.
         The host should reply with the NEMA string from a GPS receiver.
     '''
@@ -55,7 +55,7 @@ def GetHaLowGPS(host='10.0.4.34', port=7007):
         sock.close()
 
 if __name__ == "__main__":
-    HOST = '10.0.4.39'
+    HOST = '192.168.0.30'
     if len(sys.argv) > 1: # use the IP address on the command line
         HOST=sys.argv[1]
     f = open("HaLow.csv","a")

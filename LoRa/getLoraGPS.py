@@ -1,90 +1,126 @@
 #!/usr/bin/env python3
 """
-Get GPS location from a Meshtastic node.
+Send a Meshtastic position (location) request to a node over the LoRa mesh,
+wait for the response, and print the resulting location.
 
-Install dependency first:
+Requires:
     pip install meshtastic
 
 Usage:
-    python get_location.py                  # auto-detect serial device
-    python get_location.py --port /dev/ttyUSB0
-    python get_location.py --host 192.168.1.50   # TCP/WiFi node
+    python meshtastic_location_request.py --dest !aabbccdd
+    python meshtastic_location_request.py --dest !aabbccdd --port /dev/ttyUSB0 --timeout 90
+
+Notes:
+    --dest is the target node's ID (shown as !xxxxxxxx in the Meshtastic app,
+    or use "^all" to broadcast to the whole mesh — though most nodes only
+    reply to a direct request).
+    If --port is omitted, the library auto-detects a connected serial device.
 """
 
 import argparse
 import sys
 import time
 
+from pubsub import pub
 import meshtastic
 import meshtastic.serial_interface
-import meshtastic.tcp_interface
+
+position_received = False
+response_data = None
+response_from = None
 
 
-def get_interface(args):
-    if args.host:
-        return meshtastic.tcp_interface.TCPInterface(hostname=args.host)
-    elif args.port:
-        return meshtastic.serial_interface.SerialInterface(devPath=args.port)
+def on_receive(packet, interface):
+    """Called for every packet received from the mesh."""
+    global position_received, response_data, response_from
+
+    decoded = packet.get("decoded", {})
+    if decoded.get("portnum") != "POSITION_APP":
+        return
+
+    position_received = True
+    response_data = decoded.get("position", {})
+    response_from = packet.get("fromId", "unknown")
+
+
+def on_connection_established(interface, topic=pub.AUTO_TOPIC):
+    print("Connected to local Meshtastic device.")
+
+
+def print_position(from_id, position):
+    lat = position.get("latitude")
+    lon = position.get("longitude")
+    alt = position.get("altitude")
+    ts = position.get("time")
+
+    print(f"\nLocation response received from {from_id}:")
+    if lat is not None and lon is not None:
+        print(f"  Latitude:  {lat}")
+        print(f"  Longitude: {lon}")
     else:
-        # Auto-detect the first serial device
-        return meshtastic.serial_interface.SerialInterface()
-
-
-def format_position(node_id, node):
-    pos = node.get("position", {})
-    user = node.get("user", {})
-    name = user.get("longName", user.get("shortName", node_id))
-
-    lat = pos.get("latitude")
-    lon = pos.get("longitude")
-    alt = pos.get("altitude")
-    ts = pos.get("time")
-
-    if lat is None or lon is None:
-        return f"{name} ({node_id}): no GPS fix available"
-
-    line = f"{name} ({node_id}): lat={lat:.6f}, lon={lon:.6f}"
+        print("  No lat/lon in response (node may not have a GPS fix).")
     if alt is not None:
-        line += f", alt={alt}m"
-    if ts:
-        line += f", updated={time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts))}"
-    return line
+        print(f"  Altitude:  {alt} m")
+    if ts is not None:
+        print(f"  Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts))}")
+    print(f"  Raw payload: {position}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Fetch GPS location from Meshtastic node(s)")
-    parser.add_argument("--port", help="Serial port, e.g. /dev/ttyUSB0 or COM3")
-    parser.add_argument("--host", help="IP/hostname for TCP-connected node")
-    parser.add_argument("--node", help="Specific node ID (e.g. !a1b2c3d4) to query; default = all known nodes")
-    parser.add_argument("--wait", type=float, default=3.0,
-                         help="Seconds to wait for the connection/node DB to populate")
+    parser = argparse.ArgumentParser(
+        description="Request a node's location over the Meshtastic LoRa mesh."
+    )
+    parser.add_argument(
+        "--dest", "-d", required=True,
+        help="Destination node ID, e.g. !aabbccdd"
+    )
+    parser.add_argument(
+        "--port", "-p", default=None,
+        help="Serial port of the local Meshtastic device (auto-detected if omitted)"
+    )
+    parser.add_argument(
+        "--timeout", "-t", type=int, default=6,
+        help="Seconds to wait for a response before giving up (default: 60)"
+    )
     args = parser.parse_args()
 
-    print("Connecting to node...")
-    iface = get_interface(args)
+    pub.subscribe(on_receive, "meshtastic.receive")
+    pub.subscribe(on_connection_established, "meshtastic.connection.established")
+
+    print("Connecting to local Meshtastic device...")
+    try:
+        interface = meshtastic.serial_interface.SerialInterface(devPath=args.port)
+    except Exception as e:
+        print(f"Failed to connect to Meshtastic device: {e}")
+        sys.exit(1)
 
     try:
-        # Give it a moment to receive the node database
-        time.sleep(args.wait)
+        #node = interface.getNode(args.dest, requestChannels=False) #this doesn't work
+        node = interface.getNode(args.dest) #why does this take so long? It must setup other variables that are needed for SendPosition
+        #node.requestPosition() # this is apparently not a valid object.
+ 
+        try:
+            while(True):
+                print(f"Requesting position from {args.dest} ...")
+                interface.sendPosition(destinationId=args.dest,wantResponse=True,wantAck=True)
 
-        # Local connected node's own info
-        my_info = iface.getMyNodeInfo()
-        if my_info:
-            my_id = my_info.get("user", {}).get("id", "local")
-            print("\n--- Locally connected node ---")
-            print(format_position(my_id, my_info))
+                start = time.time()
+                while not position_received and (time.time() - start) < args.timeout:
+                    time.sleep(0.5)
 
-        # All nodes heard on the mesh (each may have a position)
-        print("\n--- Known mesh nodes ---")
-        nodes = iface.nodes or {}
-        if not nodes:
-            print("No nodes found yet. Try increasing --wait.")
-        for node_id, node in nodes.items():
-            if (args.node is None) or (args.node in node_id):
-                print(format_position(node_id, node))
+                if position_received:
+                    print_position(response_from, response_data)
+                else:
+                    print(f"No location response received within {args.timeout} seconds.")
+                    print("The target node may be offline, out of range, or lack a GPS fix.")
+                    break
+                time.sleep(60*2) # cannot ask for the position more than every 3 minutes?
+
+        except KeyboardInterrupt:
+            print("done")
 
     finally:
-        iface.close()
+        interface.close()
 
 
 if __name__ == "__main__":
