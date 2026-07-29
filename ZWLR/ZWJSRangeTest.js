@@ -23,12 +23,12 @@ process.on("unhandledRejection", (r) => {
 /////////////////// REQUIRED CUSTOMIZATION ///////////////////////////////////
 // UPDATE THE PORT name to the one currently connected
 // or simply pass it as an argument to the script
-const port = process.argv[2] ?? "COM5";
+const port = process.argv[2] ?? "COM4";
 // Then update the keys as needed - extract them from Z-Wave JS UI.
 
-const SecondsPerSample = 10; // UPDATE this with the desired time (in seconds) between samples - (1-100)
+const SecondsPerSample = 7; // UPDATE this with the desired time (in seconds) between samples - (1-100)
 
-const FileName = `geoloc.csv`
+const FileName = `ZWLR.csv`
 
 // Replace the securityKeys below if desired...
 // Or use these in the PCC and check the Override button in the Security menu
@@ -158,7 +158,7 @@ async function main() {
     await fs.appendFile(
       FileName,
 //      nodeIdToFileName(node.id),
-      `Time, Latitude, Longitude, Altitude, TxPower, RSSI, NodeID, Distance, ${start}\n`,
+      `Time, Latitude, Longitude, Altitude, TxPower, RSSI, NodeID, Distance, Zero, ${start}\n`,
     );
 //  }
 
@@ -221,6 +221,7 @@ async function main() {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
+      hour12: false
     });
     const stat = payload[11];
     if (0==FirstLat) {  // compute the distance between the first point and the current point in meters
@@ -243,7 +244,7 @@ async function main() {
     await fs.appendFile(
       FileName,
 //      nodeIdToFileName(geolocNode.id),
-      `${time}, ${lat}, ${lon}, ${alt}, ${txPower}, ${ackRSSI}, ${geolocNode.id}, ${Distance}\n`,
+      `${time}, ${lat}, ${lon}, ${alt}, ${txPower}, ${ackRSSI}, ${geolocNode.id}, ${Distance}, 0\n`,
     );
 
     await setTimeout(SecondsPerSample * 1000 / 4); // wait
@@ -273,7 +274,7 @@ async function main() {
           await fs.appendFile(
             FileName,
 //            nodeIdToFileName(node.id),
-            `${time}, ${lat}, ${lon}, ${alt}, ${txPower}, ${ackRSSI}, ${node.id}\n`,
+            `${time}, ${lat}, ${lon}, ${alt}, ${txPower}, ${ackRSSI}, ${node.id}, 0, 0\n`,
           );
       
         } else {
@@ -310,6 +311,8 @@ async function main() {
   */
 
     }
+    // Wait before requesting the next coordinates
+    await setTimeout((SecondsPerSample -3) * 1000); // takes about 3 seconds to get each sample
   }
 }
 

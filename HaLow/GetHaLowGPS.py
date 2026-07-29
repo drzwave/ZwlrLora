@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     try:
         while(True):
-            time.sleep(3)
+            time.sleep(7)
             nemastr = GetHaLowGPS(host=HOST)
             if nemastr:
                 print(nemastr)

@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-plot_halow_map.py
+mapGPS.py
 
-Draws a 2D map of GPS locations from a HaLow-style CSV file
+Draws a 2D map of GPS locations from a CSV file
 (columns: Time, Lat, Lon, Alt, Sats, Zero), with a straight line
 drawn from the FIRST point to every later point.
 
 Usage:
-    python plot_halow_map.py HaLow.csv [--output map.png] [--satellite]
+    python mapGPS.py filename.csv [--output map.png] [--satellite]
     the satellite options adds a satellite map to the background
+    The satellite option is now on by default - todo remove the non-satellite code
 """
 
 import argparse
 import csv
 import sys
+from math import radians, sin, cos, sqrt, atan2
 import matplotlib.pyplot as plt
 
 try:
@@ -46,7 +48,43 @@ def load_points(csv_path):
     return points
 
 
-def plot_points(points, output_path=None, satellite=False):
+def haversine_m(lat1, lon1, lat2, lon2):
+    """Great-circle distance in meters between two lat/lon points."""
+    R = 6371000.0  # Earth radius in meters
+    phi1, phi2 = radians(lat1), radians(lat2)
+    dphi = radians(lat2 - lat1)
+    dlambda = radians(lon2 - lon1)
+    a = sin(dphi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(dlambda / 2) ** 2
+    return 2 * R * atan2(sqrt(a), sqrt(1 - a))
+
+
+def format_distance(meters):
+    """Human-friendly distance string, switching to km/miles once it's large."""
+    feet = meters * 3.28084
+    miles = meters / 1609.344
+    km = meters / 1000.0
+    if miles >= 0.5:
+        return f"{meters:.0f} m ({km:.2f} km / {miles:.2f} mi)"
+    return f"{meters:.0f} m ({feet:.0f} ft)"
+
+
+def find_farthest_point(points):
+    """
+    Given a list of (lat, lon) points, returns
+    (farthest_point, distance_m) for the point farthest from points[0].
+    """
+    first_lat, first_lon = points[0]
+    farthest_point = None
+    farthest_dist = -1.0
+    for lat, lon in points[1:]:
+        d = haversine_m(first_lat, first_lon, lat, lon)
+        if d > farthest_dist:
+            farthest_dist = d
+            farthest_point = (lat, lon)
+    return farthest_point, farthest_dist
+
+
+def plot_points(points, csv_path, output_path=None, satellite=True):
     if not points:
         print("No valid Lat/Lon data rows found in the CSV - nothing to plot.")
         sys.exit(1)
@@ -74,12 +112,44 @@ def plot_points(points, output_path=None, satellite=False):
 
     # Highlight the first point
     ax.scatter([first_lon], [first_lat], color=first_color, s=140,
-               zorder=4, label="First point", marker="*",
+               zorder=4, label="Controller", marker="*",
                edgecolors="black", linewidths=0.6)
+
+    # Find and highlight the point farthest from the first point,
+    # and label the distance between them.
+    farthest_point, farthest_dist = find_farthest_point(points)
+    if farthest_point is not None:
+        far_lat, far_lon = farthest_point
+        far_color = "lime" if satellite else "darkorange"
+
+        ax.scatter([far_lon], [far_lat], color=far_color, s=140,
+                   zorder=5, label="Farthest point", marker="D",
+                   edgecolors="black", linewidths=0.6)
+
+        # Draw the first-to-farthest line a bit thicker so it stands out
+        ax.plot([first_lon, far_lon], [first_lat, far_lat], color=far_color,
+                linewidth=2.2, alpha=0.9, zorder=4)
+
+        # Label with the distance, placed at the midpoint of that line
+        mid_lon = (first_lon + far_lon) / 2
+        mid_lat = (first_lat + far_lat) / 2
+        dist_label = f"Max distance: {format_distance(farthest_dist)}"
+        ax.annotate(
+            dist_label,
+            xy=(mid_lon, mid_lat),
+            xytext=(8, 8),
+            textcoords="offset points",
+            fontsize=9,
+            fontweight="bold",
+            color="black",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
+                      edgecolor=far_color, alpha=0.85),
+            zorder=6,
+        )
 
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
-    ax.set_title("GPS Locations (lines from first point to each other point)")
+    ax.set_title(csv_path)
     ax.legend()
     ax.set_aspect("equal", adjustable="datalim")
 
@@ -117,7 +187,8 @@ def main():
     args = parser.parse_args()
 
     points = load_points(args.csv_path)
-    plot_points(points, args.output, satellite=args.satellite)
+    #plot_points(points, args.output, satellite=args.satellite)
+    plot_points(points, args.csv_path, args.output, satellite=True) # always add satellite background
 
 
 if __name__ == "__main__":

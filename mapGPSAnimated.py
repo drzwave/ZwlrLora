@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-animate_halow_map.py
+mapGPSAnimated.py
 
-Creates an animated GIF showing GPS points from a HaLow-style CSV file
+Creates an animated GIF showing GPS points from a CSV file
 (columns: Time, Lat, Lon, Alt, Sats, Zero) appearing one-by-one in the
 order given by the Time column, with a line drawn from the FIRST point
 to every point revealed so far.
 
 Usage:
-    python animate_halow_map.py HaLow2.csv --output animation.gif
-    python animate_halow_map.py HaLow2.csv --output animation.gif --satellite
+    python mapGPSAnimated.py filename.csv --output animation.gif
 """
 
 import argparse
@@ -188,7 +187,7 @@ def main():
                          help="Output GIF path (default: animation.gif)")
     parser.add_argument("--satellite", action="store_true",
                          help="Overlay on satellite imagery (requires 'pip install contextily' and internet access).")
-    parser.add_argument("--speed", type=float, default=1.0,
+    parser.add_argument("--speed", type=float, default=5.0,
                          help="Playback speed multiplier relative to real recorded time (default: 1.0). "
                               "E.g. 2.0 plays twice as fast.")
     parser.add_argument("--min-ms", type=int, default=80,
@@ -198,7 +197,7 @@ def main():
     args = parser.parse_args()
 
     points = load_points(args.csv_path)
-    make_gif(points, args.output, satellite=args.satellite,
+    make_gif(points, args.output, satellite=True,
               min_ms=args.min_ms, max_ms=args.max_ms, speed=args.speed)
 
 
