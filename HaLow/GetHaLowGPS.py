@@ -12,6 +12,7 @@ def GetHaLowGPS(host='192.168.0.30', port=7007):
     '''
     # Create a TCP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(10.0) # set a timeout of 10s
 
     try:
         sock.connect((host, port))
@@ -51,6 +52,12 @@ def GetHaLowGPS(host='192.168.0.30', port=7007):
         print(f"Could not connect to {host}:{port} — is the server running?")
     except socket.timeout:
         print("Connection timed out.")
+    except TimeoutError:
+        print("TimeoutError.")
+    except KeyboardInterrupt:
+        print("exit")
+    except Exception as e:
+        print("Exception:{e}")
     finally:
         sock.close()
 
@@ -82,6 +89,8 @@ if __name__ == "__main__":
                             print(f"sats={nemalist[7]} Lon={lon} Lat={lat} Alt={alt}")
                             now=datetime.now()
                             print(f"{now.time()},{lat:.6f},{lon:.6f},{alt:.2f},{nemalist[7]},0",file=f)
+    except Exception as e:
+        print("Exception-{e}")
     except KeyboardInterrupt:
-        print("done")
+        print("Done")
 

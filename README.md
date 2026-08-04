@@ -91,6 +91,7 @@ Since this is proving only 1-way communication, the usable RF range for LoRa for
 
 ## Wi-Fi HaLow Setup
 
+<img src="./pix/HeltecHalowConfig.png" width="300" align="right" />
 - Plug in the TPLink Router
 - Plug the Station dongle into the ethernet port of the TPLink
 - Plug a USB-C cable from TPLink to Station dongle to power it
@@ -104,7 +105,6 @@ Since this is proving only 1-way communication, the usable RF range for LoRa for
     - Configure it as Router and provide details for it to connect to your local Wifi
     - It should now be able to connect to your Wifi and then run NAT to other downstream devices like the dongles and RPi and your PC
 - Browse to each dongle and login (root - heltec.org)
-<img src="./pix/HeltecHalowConfig.png" width="300" align="right" />
     - Click on Quick Config and setup as shown here:
     - Disable Radio0 (2.4GHz)
     - Country = US (or your region)
