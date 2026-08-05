@@ -1,8 +1,14 @@
 2026-07-29 Data capture in Dover NH.
 All 3 protocols were tested simultaneously on an eBike in the general neighborhood.
 The controllers were all in my home on my desk.
-LoRa and ZWLR both suffered from interference from HaLow or possibly the RPi.
+Appears LoRa and ZWLR both suffered from interference from HaLow or possibly the RPi.
 LoRa/ZWLR were captured on a 2nd pass with HaLow (and RPi) turned off.
 The net result is that all 3 protocols have similar RF range.
 LoRa however is a 1-way transmission from the far node to the receiver with no acknowledgment or retries.
+
+260729Halow3.csv is the Halow data when all 3 protocols were being captured.
+260729Lora3.csv  is the LoRa data with all 3 running
+260729LoraZW.csv is the LoRa data with Halow powered off but ZWLR is also active
+260729ZWLR3.csv  is the ZWLR data with all 3 running
+260729ZWLRLo.csv is the ZWLR data with Halow powered off but Lora is also active
 

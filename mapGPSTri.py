@@ -22,6 +22,7 @@ import colorsys
 import csv
 import os
 import sys
+import xml.etree.ElementTree as ET
 from math import radians, sin, cos, sqrt, atan2
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -58,6 +59,33 @@ def load_points(csv_path):
                 # Not a numeric row (header, or a fix-less log line) - skip it
                 continue
             points.append((lat, lon))
+    return points
+
+
+def load_gpx_points(gpx_path):
+    """
+    Reads a GPX file and returns a list of (lat, lon) tuples, in order,
+    pulled from any track points, route points, or waypoints found in
+    the file (namespace-agnostic, so it works with GPX 1.0 and 1.1).
+    """
+    points = []
+    try:
+        tree = ET.parse(gpx_path)
+    except ET.ParseError as e:
+        print(f"Warning: could not parse GPX file {gpx_path} ({e}) - skipping.")
+        return points
+
+    root = tree.getroot()
+    for elem in root.iter():
+        tag = elem.tag.split("}")[-1]  # strip namespace, e.g. "{...}trkpt" -> "trkpt"
+        if tag in ("trkpt", "rtept", "wpt"):
+            lat_str, lon_str = elem.get("lat"), elem.get("lon")
+            if lat_str is None or lon_str is None:
+                continue
+            try:
+                points.append((float(lat_str), float(lon_str)))
+            except ValueError:
+                continue
     return points
 
 
@@ -109,9 +137,18 @@ def lighten_color(color, amount=0.5):
     return colorsys.hls_to_rgb(h, l, s)
 
 
-def plot_datasets(csv_paths, output_path=None, satellite=True):
+def plot_datasets(csv_paths, output_path=None, satellite=True, gpx_path=None):
     datasets = []  # list of dicts with points, color, light_color, label
     all_lats, all_lons = [], []
+
+    gpx_points = []
+    if gpx_path:
+        gpx_points = load_gpx_points(gpx_path)
+        if not gpx_points:
+            print(f"Warning: no valid trkpt/rtept/wpt data found in {gpx_path}.")
+        else:
+            all_lats.extend(p[0] for p in gpx_points)
+            all_lons.extend(p[1] for p in gpx_points)
 
     for idx, csv_path in enumerate(csv_paths):
         points = load_points(csv_path)
@@ -137,6 +174,16 @@ def plot_datasets(csv_paths, output_path=None, satellite=True):
         sys.exit(1)
 
     fig, ax = plt.subplots(figsize=(9, 9))
+
+    # Draw the GPX track first, as the base layer underneath everything
+    # else: small white dots connected by thin white lines.
+    if gpx_points:
+        gpx_lats = [p[0] for p in gpx_points]
+        gpx_lons = [p[1] for p in gpx_points]
+        ax.plot(gpx_lons, gpx_lats, color="white", linewidth=0.5,
+                alpha=0.8, zorder=1)
+        ax.scatter(gpx_lons, gpx_lats, color="white", s=4, zorder=1,
+                   label="GPX track", edgecolors="none")
 
     for ds in datasets:
         points = ds["points"]
@@ -233,6 +280,10 @@ def main():
                          help="Path(s) to 1-3 HaLow-style CSV files.")
     parser.add_argument("--output", "-o", default=None,
                          help="Path to save the plot image (e.g. map.png). If omitted, shows an interactive window.")
+    parser.add_argument("--gpx", default=None,
+                         help="Path to a GPX file. Its track/route/waypoints are plotted "
+                              "as small white dots connected by thin white lines, drawn "
+                              "first so every other layer sits on top of it.")
     parser.add_argument("--satellite", action="store_true", default=True,
                          help="Overlay the points on satellite imagery (on by default; requires 'pip install contextily' and internet access).")
     args = parser.parse_args()
@@ -241,7 +292,7 @@ def main():
         print(f"Warning: {len(args.csv_paths)} files given; only 3 distinct "
               f"colors are defined so colors will repeat.")
 
-    plot_datasets(args.csv_paths, args.output, satellite=True)  # always add satellite background
+    plot_datasets(args.csv_paths, args.output, satellite=True, gpx_path=args.gpx)  # always add satellite background
 
 
 if __name__ == "__main__":

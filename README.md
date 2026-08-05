@@ -1,9 +1,9 @@
 # Real-World Comparison of Z-Wave Long Range, LoRa, Wi-Fi HaLow Sub-GigaHertz Wireless Technologies
 
-This repo contains the scripts and data captured as part of the Z-Wave Alliance White Paper Comparison of ZWLR/LoRa/Wi-Fi HaLow.
+This repo contains the scripts and data captured as part of the Z-Wave Alliance White Paper Comparison of ZWLR/LoRa/Wi-Fi HaLow during the summer of 2026.
 
 The purpose of this repo is to enable others to replicate the results.
-This project captured actual real-world data of the RF Range of each Sub-GHz protocol. Many ancedotes on the effort required to setup and use each protocol are documented here. Many more than were published in the white paper due to limited space.
+This project captured actual real-world data of the RF Range of each Sub-GHz protocol. 
 
 # Status
 
@@ -136,12 +136,13 @@ Since this is proving only 1-way communication, the usable RF range for LoRa for
 - Take the remote units for a ride!
     - Start at the controller location
         - The mapping scripts assume the first point is at the controller
-    - Best practice is to circle outward at less than 5mph
+        - Often the first few data points need to be deleted from the file to get the proper reading for the first point. This is especially common for LoRa which seems to take several minutes for the GPS to settle. Ocassionally LoRa has invalid data points as well which must be deleted.
+    - Best practice is to circle outward at about 10mph
     - Once ZWLR is unable to beep, then return to the start, ctl-C the scripts
     - Rename the .csv files with meaningful names - YYMMDDProtocolLocationDetails.csv
 - Several scripts will read the .csv file(s) and plot them on a map
     - mapGPS.py will map one .CSV file
-    - mapGPS.py will read all 3 .CSV files and plot them all on the same map in different colors
+    - mapGPSTri.py will read all 3 .CSV files and plot them all on the same map in different colors
     - mapGPSAnimated.py will create an animated .GIF of the map showing the direction of travel
     - See the comments in each file for more details
 
@@ -154,7 +155,6 @@ Since this is proving only 1-way communication, the usable RF range for LoRa for
     - map images are not saved as they can be generated from the .csv files
 - pix - Images
 
-Note that 
 # Sponsor
 
-- The [Z-Wave Alliance](https://z-wavealliance.org) provided limited funding to offset the equipment cost and partial compensation to prioritize this effort. Much of the effort was donated by Eric Ryherd who is a Z-Wave enthusiast and long-time developer. However, ALL scripts, equipment and data are provided in this repo to enable others to replicate the results. Please contact Eric with comments, improvements, mistakes, and data from your own efforts. Please do NOT comment without actual data to back up your assertions.
+- The [Z-Wave Alliance](https://z-wavealliance.org) provided some funding to offset the equipment cost and partial compensation to prioritize this effort. Much of the effort was donated by Eric Ryherd who is a Z-Wave enthusiast and long-time developer. However, ALL scripts, equipment and data are provided in this repo to enable others to replicate the results. Please contact Eric with comments, improvements, mistakes, and data from your own efforts. Please do NOT comment without actual data to back up your assertions.

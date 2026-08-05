@@ -1,0 +1,25 @@
+2026-08-04 Data capture in Rochester NH
+This location has the controllers next to the Rochester Fairgrounds which provides an open field in one direction and a dense suburban neighborhood on the other side.
+Weather: Clear skies, temperatures in the 80s in the morning then low 90s by the afternoon.
+The units mounted on the car roof got very warm which may have impacted overall RF range as on previous runs in the morning the range was further.
+
+All 3 protocols were tested simultaneously on an eBike in Rochester NH.
+
+The challenge has been HaLow tends to drop and often doesn't reconnect.
+Thus, the data is somewhat limited.
+In the afternoon I had chatgpt improve the gpsServer.py script to make it more robust and recover from many Exceptions but something still drops the connection.
+
+LoRa and ZWLR both suffered from interference from HaLow or possibly the RPi.
+
+LoRa/ZWLR were captured on a 2nd pass with HaLow (and RPi) powered off.
+The 2nd pass capture was a somewhat shorter path mostly along the outer edge of range.
+
+260804HaLow3.csv is the Halow data when all 3 protocols were being captured.
+260804HaLow.csv is the Halow data when only halow was powered on.
+260804LoRa3.csv is the LoRa data when all 3 protocols were being captured.
+260804LoraZw.csv is the LoRa data when halow was powered off and Lora & ZW are active.
+260804ZWLR3.csv is the ZWLR data when all 3 protocols were being captured.
+260804ZWLRLo.csv is the ZWLR data when halow was powered off and Lora & ZW are active.
+260804RochesterNH.zlf is the Z-Wave Zniffer capture of the LoRa/ZWLR active and Halow powered off.
+
+
