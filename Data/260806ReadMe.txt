@@ -1,0 +1,22 @@
+2026 08 06 Rochester NH city center - Urban environment
+
+First capture was early in the morning for ZWLR and LoRa but I realized I forgot the RPi power cable so I couldn't get HaLow.
+Plus it was getting hot already at 8am and very sunny.
+I came back in the evening to try again.
+
+Z-Wave JS reports a high noise floor in the City of -78dBm.
+Most places have a noise floor of the limit of the chip at around -108.
+
+There is cell phone traffic in the 880MHz band which can be seen in the spectrum analyzer screenshot.
+
+routing scheme:                        Resort to Direct
+                        ACK RSSI:                              -51 dBm
+                        ACK channel no.:                       3
+                        TX channel no.:                        3
+                        TX power:                              -6 dBm
+                        measured noise floor:                  -78 dBm
+                        ACK TX power by destination:           -6 dBm
+                        measured RSSI of ACK from destination: -12 dBm
+                        measured noise floor by destination:   -81 dBm
+
+
