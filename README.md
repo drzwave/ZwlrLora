@@ -1,19 +1,11 @@
 # Real-World Comparison of Z-Wave Long Range, LoRa, Wi-Fi HaLow Sub-GigaHertz Wireless Technologies
 
+<img src="./pix/ZWLRAnimated.gif" width="450" align="right" />
+
 This repo contains the scripts and data captured as part of the Z-Wave Alliance White Paper Comparison of ZWLR/LoRa/Wi-Fi HaLow during the summer of 2026.
 
 The purpose of this repo is to enable others to replicate the results.
 This project captured actual real-world data of the RF Range of each Sub-GHz protocol. 
-
-# Status
-
-- ZWLR working
-- LoRa - Working but sends every 10 seconds without a request so only 1-way comms
-- Wi-Fi HaLow - Working
-- Paper
-    - Basic outline completed
-    - Paper will be available behind the ZWA website but available to all with an email
-    - Presentations at The Things Conference and Z-Wave Alliance Summit 2026 will be available on the ZWA members portal
 
 # Setup
 
@@ -92,6 +84,7 @@ Since this is proving only 1-way communication, the usable RF range for LoRa for
 ## Wi-Fi HaLow Setup
 
 <img src="./pix/HeltecHalowConfig.png" width="300" align="right" />
+
 - Plug in the TPLink Router
 - Plug the Station dongle into the ethernet port of the TPLink
 - Plug a USB-C cable from TPLink to Station dongle to power it
