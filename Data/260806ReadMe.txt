@@ -1,13 +1,18 @@
 2026 08 06 Rochester NH city center - Urban environment
 
-First capture was early in the morning for ZWLR and LoRa but I realized I forgot the RPi power cable so I couldn't get HaLow.
-Plus it was getting hot already at 8am and very sunny.
-I came back in the evening to try again.
+After several attempts to get a complete data capture and determining the general range of all three protocols,
+the final data capture was performed in the evening when the car was in the shadow of nearby trees and buildings.
+Temperature was 89F with clear skies.
+HaLow specifically kept failing somewhere along the capture. The final data was one of the best captures.
+
+The range is pretty good considering the size of many brick buildings surrounding the parking lot.
+The fixed location is next to the police department which has a large antenna on the roof.
+There is lots of noise in the 880MHz band from cellular LTE traffic.
 
 Z-Wave JS reports a high noise floor in the City of -78dBm.
 Most places have a noise floor of the limit of the chip at around -108.
 
-There is cell phone traffic in the 880MHz band which can be seen in the spectrum analyzer screenshot.
+There is LTE cell phone traffic in the 880MHz band which can be seen in the spectrum analyzer screenshot.
 
 routing scheme:                        Resort to Direct
                         ACK RSSI:                              -51 dBm

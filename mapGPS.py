@@ -140,9 +140,9 @@ def plot_points(points, csv_path, output_path=None, satellite=True, gpx_path=Non
     if gpx_points:
         gpx_lats = [p[0] for p in gpx_points]
         gpx_lons = [p[1] for p in gpx_points]
-        ax.plot(gpx_lons, gpx_lats, color="white", linewidth=0.5,
+        ax.plot(gpx_lons, gpx_lats, color="white", linewidth=2.0,
                 alpha=0.8, zorder=1)
-        ax.scatter(gpx_lons, gpx_lats, color="white", s=4, zorder=1,
+        ax.scatter(gpx_lons, gpx_lats, color="white", s=8, zorder=1,
                    label="GPX track", edgecolors="none")
 
     # Colors that show up well over satellite imagery vs. a plain background

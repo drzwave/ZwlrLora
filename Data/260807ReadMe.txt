@@ -1,0 +1,17 @@
+7 Aug 2026 Mt Agamenticus Maine
+
+The goal was to find a distant spot that had a direct LoS view of the top of the mountain which is easily identifable by the large cell tower.
+But we could not find a place that wasn't surrounded with trees that seemed to block the signal enough that it didn't make connection.
+
+ZWLR is a little suspect as the antenna has loosened up from all the carting around while stuck on the end of a long pole.
+
+HaLow performed the best in this location making connection even over the top of the hill.
+The static point is not at the very top of the hill but in the corner of the parking lot near the cell tower.
+The first distant location is the parking lot at the base of the mountain which does not have a clear LoS to the top but the parking lot is open. Halow was barely able to make connection here.
+The second distant location was Algonquin Dr to the east since the static location is on the east side of the mountain. Algonquin Dr is on a small ridge and is visible from the summit but it is surrounded with dense tall pin trees.
+The third location is along Chases pond which is also visible from the summit to the south east. But the section of the pond near a road does not have LoS to the summit.
+
+Using google earth it looks like Old Mountain road might have a view of the summit.
+In the distance is Zoes Way which is 4 miles away.
+If I end up doing this again I'll have to try this out.
+

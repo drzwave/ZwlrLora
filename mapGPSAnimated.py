@@ -32,11 +32,11 @@ def parse_time_to_seconds(time_str):
     Parses a Time value like '19:06.1' (MM:SS.s) into total seconds.
     Returns None if it can't be parsed.
     """
-    m = re.match(r"^(\d+):(\d+(?:\.\d+)?)$", time_str.strip())
+    m = re.match(r"^(\d{2}):(\d{2}):(\d{2})", time_str.strip())
     if not m:
         return None
-    minutes, seconds = m.groups()
-    return int(minutes) * 60 + float(seconds)
+    hours, minutes, seconds = map(int,m.groups())
+    return (hours*3600) + (minutes*60) + seconds
 
 
 def load_points(csv_path):
@@ -66,11 +66,12 @@ def load_points(csv_path):
                 # Fall back to simple ordering if the time can't be parsed
                 seconds = points[-1][2] + 1 if points else 0.0
             else:
-                if prev_raw is not None and raw_seconds < prev_raw - 1:
-                    # Detected wraparound (e.g. minutes rolled past 59)
-                    wrap_offset += 3600
-                seconds = raw_seconds + wrap_offset
-                prev_raw = raw_seconds
+                if prev_raw is None:    # first time thru capture the start time
+                    prev_raw = raw_seconds
+                    seconds=0
+                else:                   # then compute the delta from the last point
+                    seconds = raw_seconds - prev_raw
+                    prev_raw = raw_seconds
 
             points.append((lat, lon, seconds))
     return points
@@ -133,7 +134,7 @@ def render_frame(points, upto_index, satellite, bounds):
     return Image.open(buf).convert("RGB")
 
 
-def make_gif(points, output_path, satellite=False, min_ms=80, max_ms=800,
+def make_gif(points, output_path, satellite=False, min_ms=80, max_ms=1000,
              hold_last_ms=1500, speed=1.0):
     if not points:
         print("No valid Lat/Lon data rows found in the CSV - nothing to animate.")
@@ -161,9 +162,11 @@ def make_gif(points, output_path, satellite=False, min_ms=80, max_ms=800,
         if i == 0:
             durations.append(min_ms)
         else:
-            dt = points[i][2] - points[i - 1][2]
-            ms = int(max(min_ms, min(max_ms, dt * 1000 / speed)))
+            #dt = points[i][2] - points[i - 1][2]
+            dt = points[i][2]
+            ms = int(max(min_ms, min(max_ms, dt * 5 / speed))) # time is normally 10s which we want to become 50ms
             durations.append(ms)
+            #print(f"ms={ms} dt={dt} points={points[i]} speed={speed}")
 
     # Hold on the final, fully-drawn frame for a bit
     durations[-1] = hold_last_ms
@@ -187,13 +190,13 @@ def main():
                          help="Output GIF path (default: animation.gif)")
     parser.add_argument("--satellite", action="store_true",
                          help="Overlay on satellite imagery (requires 'pip install contextily' and internet access).")
-    parser.add_argument("--speed", type=float, default=5.0,
+    parser.add_argument("--speed", type=float, default=1.0,
                          help="Playback speed multiplier relative to real recorded time (default: 1.0). "
                               "E.g. 2.0 plays twice as fast.")
     parser.add_argument("--min-ms", type=int, default=80,
                          help="Minimum duration per frame in milliseconds (default: 80).")
-    parser.add_argument("--max-ms", type=int, default=800,
-                         help="Maximum duration per frame in milliseconds, caps long real-world gaps (default: 800).")
+    parser.add_argument("--max-ms", type=int, default=1000,
+                         help="Maximum duration per frame in milliseconds, caps long real-world gaps (default: 1000).")
     args = parser.parse_args()
 
     points = load_points(args.csv_path)
