@@ -7,7 +7,7 @@ All 3 protocols were tested simultaneously on an eBike in Rochester NH.
 
 The challenge has been HaLow tends to drop and often doesn't reconnect.
 Thus, the data is somewhat limited.
-In the afternoon I had chatgpt improve the gpsServer.py script to make it more robust and recover from many Exceptions but something still drops the connection.
+In the afternoon I had Claude.ai improve the gpsServer.py script to make it more robust and recover from many Exceptions but something still drops the connection.
 
 LoRa and ZWLR both suffered from interference from HaLow or possibly the RPi.
 

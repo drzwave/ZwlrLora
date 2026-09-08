@@ -17,17 +17,18 @@ This project captured actual real-world data of the RF Range of each Sub-GHz pro
         - SAM-M8Q is connected to the ZRADmini via QWIIC connector and placed in a 3D printed enclosure
     - Powered from either 3AAA batteries or a USB-C power bank
         - Since ZRADmini draws so little power many USB-C power banks will turn off thus 3AAA is more reliable
+    - 3D printed enclosure
 
 - **LoRa Equipment**
     - Two [WIO Tracker L1 Pro](https://www.seeedstudio.com/Wio-Tracker-L1-Pro-p-6454.html)
-    - These come with 3D printed enclosures, OLED display, SMA Antenna and battery
+    - These come with 3D printed enclosure, OLED display, GPS, SMA Antenna and battery
 
 - **Wi-Fi HaLow Equipment**
     - Heltec [HT-HD01](https://heltec.org/project/ht-hd01/) Wi-Fi Halow Dongle Network Bridge
         - Includes both a Station and Client dongles
     - Raspberry Pi for running python to capture the SAM-M8Q GPS coordinates
     - SAM-M8Q GPS receiver in UART mode connected to the RPi header:
-        - Recommend soldering a header with a 10 pin ribbon cable to the SAM-M8Q that plugs directly into the RPi
+        - Recommend soldering a 10 pin ribbon cable to the SAM-M8Q that plugs directly into the RPi
         - 3.3v -> Pin 1
         - GND -> Pins 9 & 6
         - Tx -> Pin 10 (Rx on RPi)
@@ -50,6 +51,8 @@ This project captured actual real-world data of the RF Range of each Sub-GHz pro
 - Confirm that the ZRADmini LED turns on/off with a Basic On/Off and sending a GeoLoc GET replies with a GeoLoc REPORT
     - Confirm the ZRADmin is connected securely and with ZWLR
     - Close the PCC
+- Optionally connect a [buzzer](https://www.digikey.com/en/products/detail/pui-audio-inc/AT-1127-ST-2-R/5011397) to +3.3V and PD02 through a 150 ohm resistor
+    - ZRAD will beep every time a GeoLoc Report is sent which makes it easy to know the edge of the RF range
 
 ## LoRa Meshtastic Setup
 
@@ -101,12 +104,22 @@ Since this is proving only 1-way communication, the usable RF range for LoRa for
     - Click on Quick Config and setup as shown here:
     - Disable Radio0 (2.4GHz)
     - Country = US (or your region)
-    - Freq Width = 1MHz (the slowest, longest range 3.5mbps)
+    - Freq Width = 1MHz (the slowest, longest range 0.3kbps)
     - Freq Channel = 27 (or any channel)
+    - Wait for the RPi to show up as a client on the router - note it's IP address
+        - Assign the RPi a fixed IP address so it always comes up the same
+- ssh into the RPi from the PC using the IP address above
+    - clone the repo onto the RPi
+    - create a crontab to automatically start the server script - crontab -e
+    - paste this into the crontab and then save it
+        - @reboot sleep30;/usr/bin/python3 /home/eric/zwlrLora/HaLow/gpsServer.py > /home/eric/crontab.log 2>&1
+    - Test the script works and GPS coordinates are correct
+    - The M8Q was taped to the RPi enclosure but an ESD bag was needed between the M8Q and RPi otherwise there was too much RF noise from the RPi. The M8Q struggled to lock on to sufficient satellites for an accurate location with the ESD bag.
+
 
 # Running an RF Range Test
 
-- Mount the remote equipment on an eBike. See photo.
+- Mount the remote equipment on an eBike.
 - Place the controller devices typically on the roof of a car, ideally 1' above the roof on a non-conductive surface
 - Connect the PC to the TpLink router via its local wifi
     - browse to 192.168.0.1 and login
@@ -114,22 +127,27 @@ Since this is proving only 1-way communication, the usable RF range for LoRa for
 - At the stationary location, on a windows PC, open 3 separate shell windows
 - One window for each protocol
 - Halow 
-    - ssh into the RPi (its IP address is shown when browsing the TpLink)
-    - cd ZwlrLora/HaLow
-    - ./startGPSServer.sh
-    - Starts the server with a TCP port to return GPS data over WiFi HaLow
-    - exit - closes the SSH session but the server keeps running due to nohup
+    - If the RPi crontab is working, the server should already be running
+    - If not, do this:
+        - ssh into the RPi (its IP address is shown when browsing the TpLink)
+        - cd ZwlrLora/HaLow
+        - ./startGPSServer.sh
+        - Starts the server with a TCP port to return GPS data over WiFi HaLow
+        - exit - closes the SSH session but the server keeps running due to nohup
     - python GetHaLowGPS.py
     - Should start getting GPS data
 - LoRa
-    - python meshtastic_position_listener.py --port COM7
+    - python meshtastic_position_listener.py --port COMx
 - ZWLR
     - Start the capture: node ZWJSRangeTest.js COMx
-    - The ZWLR node with a GPS receiver should beep each time it sends a GeoLoc report letting the person know when they are beyond range
+    - The ZWLR node with a GPS receiver should beep each time it sends a GeoLoc report letting you know when within RF range
 - Take the remote units for a ride!
     - Start at the controller location
         - The mapping scripts assume the first point is at the controller
         - Often the first few data points need to be deleted from the file to get the proper reading for the first point. This is especially common for LoRa which seems to take several minutes for the GPS to settle. Ocassionally LoRa has invalid data points as well which must be deleted.
+    - Ideally use a tracking app (allTrails or any running app) to record the entire path traveled
+        - Once the ride is complete, export the GPS track as a .gpx file
+        - This file can be added to the mapping scripts using the --gpx option
     - Best practice is to circle outward at about 10mph
     - Once ZWLR is unable to beep, then return to the start, ctl-C the scripts
     - Rename the .csv files with meaningful names - YYMMDDProtocolLocationDetails.csv
