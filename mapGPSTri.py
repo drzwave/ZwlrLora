@@ -89,6 +89,32 @@ def load_gpx_points(gpx_path):
     return points
 
 
+def color_for_filename(csv_path):
+    """
+    Returns the fixed color for a file based on a keyword found in its
+    filename (case-insensitive): 'zwlr' -> yellow, 'lora' -> cyan,
+    'halo' -> magenta. Returns None if no keyword matches, so the
+    caller can fall back to the cycling BASE_COLORS list.
+    """
+    name = os.path.basename(csv_path).lower()
+    if "zwlr" in name:
+        return "yellow"
+    elif "lora" in name:
+        return "cyan"
+    elif "halo" in name:
+        return "magenta"
+    return None
+
+
+def count_csv_lines(csv_path):
+    """Returns the number of lines in a file (used to order datasets by size)."""
+    try:
+        with open(csv_path, newline="") as f:
+            return sum(1 for _ in f)
+    except OSError:
+        return 0
+
+
 def haversine_m(lat1, lon1, lat2, lon2):
     """Great-circle distance in meters between two lat/lon points."""
     R = 6371000.0  # Earth radius in meters
@@ -150,12 +176,20 @@ def plot_datasets(csv_paths, output_path=None, satellite=True, gpx_path=None):
             all_lats.extend(p[0] for p in gpx_points)
             all_lons.extend(p[1] for p in gpx_points)
 
-    for idx, csv_path in enumerate(csv_paths):
+    # Draw the file with the most lines first, then the next-most, etc.,
+    # so that busier logs are laid down before sparser ones on top.
+    ordered_csv_paths = sorted(csv_paths, key=count_csv_lines, reverse=True)
+
+    for idx, csv_path in enumerate(ordered_csv_paths):
         points = load_points(csv_path)
         if not points:
             print(f"Warning: no valid Lat/Lon rows found in {csv_path} - skipping.")
             continue
-        color = BASE_COLORS[idx % len(BASE_COLORS)]
+        # Color is determined by a keyword in the filename (zwlr/lora/halo);
+        # fall back to cycling through BASE_COLORS if no keyword matches.
+        color = color_for_filename(csv_path)
+        if color is None:
+            color = BASE_COLORS[idx % len(BASE_COLORS)]
         light_color = lighten_color(color, amount=0.55)
         datasets.append({
             "path": csv_path,
@@ -242,7 +276,7 @@ def plot_datasets(csv_paths, output_path=None, satellite=True, gpx_path=None):
 
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
-    ax.set_title(", ".join(os.path.basename(p) for p in csv_paths))
+    ax.set_title(", ".join(os.path.basename(p) for p in ordered_csv_paths))
     ax.legend(fontsize=8, loc="best")
     ax.set_aspect("equal", adjustable="datalim")
 
