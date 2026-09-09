@@ -8,7 +8,7 @@ from datetime import datetime
 
 def GetHaLowGPS(host='192.168.0.30', port=7007):
     ''' Open a TCP socket and send 'GPS' to the host IP address.
-        The host should reply with the NEMA string from a GPS receiver.
+        The host should reply with the NMEA string from a GPS receiver.
     '''
     # Create a TCP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -38,7 +38,7 @@ def GetHaLowGPS(host='192.168.0.30', port=7007):
         print(f"Received: {data.decode()}")
         '''
 
-        # request the GPS NEMA string
+        # request the GPS NMEA string
         message = b"GPS"
         sock.sendall(message)
         #print(f"Sent: {message.decode()}")
@@ -51,13 +51,13 @@ def GetHaLowGPS(host='192.168.0.30', port=7007):
     except ConnectionRefusedError:
         print(f"Could not connect to {host}:{port} — is the server running?")
     except socket.timeout:
-        print("Connection timed out.")
+        print("Socket Connection timed out.")
     except TimeoutError:
         print("TimeoutError.")
     except KeyboardInterrupt:
         print("exit")
     except Exception as e:
-        print("Exception:{e}")
+        print(f"Exception:{e}")
     finally:
         sock.close()
 
@@ -71,26 +71,26 @@ if __name__ == "__main__":
     try:
         while(True):
             time.sleep(7)
-            nemastr = GetHaLowGPS(host=HOST)
-            if nemastr:
-                print(nemastr)
-                nemalist=nemastr.split(',')
-                print(nemalist)
-                if "GGA" in nemalist[0]: # valid string
-                    if int(nemalist[7])>3: # must have more than 3 satelites or there is no fix
-                        if len(nemalist[2])>3 and len(nemalist[4])>3: # then there are numbers for lat/lon
-                            nemalat=nemalist[2]
-                            lat = float(nemalat[0:2]) + (float(nemalat[2:])/60)
-                            if 'S' in nemalist[3]: lat=-lat
-                            nemalon=nemalist[4]
-                            lon = float(nemalon[0:3]) + (float(nemalon[3:])/60)
-                            if 'W' in nemalist[5]: lon=-lon
-                            alt=float(nemalist[9])
-                            print(f"sats={nemalist[7]} Lon={lon} Lat={lat} Alt={alt}")
+            NMEAstr = GetHaLowGPS(host=HOST)
+            if NMEAstr:
+                print(NMEAstr)
+                NMEAlist=NMEAstr.split(',')
+                print(NMEAlist)
+                if "GGA" in NMEAlist[0]: # valid string
+                    if int(NMEAlist[7])>3: # must have more than 3 satelites or there is no fix
+                        if len(NMEAlist[2])>3 and len(NMEAlist[4])>3: # then there are numbers for lat/lon
+                            NMEAlat=NMEAlist[2]
+                            lat = float(NMEAlat[0:2]) + (float(NMEAlat[2:])/60)
+                            if 'S' in NMEAlist[3]: lat=-lat
+                            NMEAlon=NMEAlist[4]
+                            lon = float(NMEAlon[0:3]) + (float(NMEAlon[3:])/60)
+                            if 'W' in NMEAlist[5]: lon=-lon
+                            alt=float(NMEAlist[9])
+                            print(f"sats={NMEAlist[7]} Lon={lon} Lat={lat} Alt={alt}")
                             now=datetime.now()
-                            print(f"{now.time()},{lat:.6f},{lon:.6f},{alt:.2f},{nemalist[7]},0",file=f)
+                            print(f"{now.time()},{lat:.6f},{lon:.6f},{alt:.2f},{NMEAlist[7]},0",file=f)
     except Exception as e:
-        print("Exception-{e}")
+        print(f"Exception-{e}")
     except KeyboardInterrupt:
         print("Done")
 
