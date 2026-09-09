@@ -12,6 +12,8 @@ Default UART baud rate for the SAM-M8Q is 9600 (u-blox default).
 
 Requires:
     pip install pyserial
+
+Note that the filename is the photenic pronunciation of NMEA (NEMA). Didn't want to break anything just fixing the spelling...
 """
 
 import serial
@@ -55,7 +57,7 @@ class getNema:
 
             sentence_type = line[3:6]  # e.g. GGA, RMC, GSV
             if sentence_type == "GGA":  # Fix data
-                return(line)    # found the NEMA sentence with the GPS coordinates, exit
+                return(line)    # found the NMEA sentence with the GPS coordinates, exit
 
 if __name__ == "__main__":
     try:
