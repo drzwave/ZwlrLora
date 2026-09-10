@@ -126,13 +126,10 @@ def haversine_m(lat1, lon1, lat2, lon2):
 
 
 def format_distance(meters):
-    """Human-friendly distance string, switching to km/miles once it's large."""
-    feet = meters * 3.28084
+    """Human-friendly distance string."""
     miles = meters / 1609.344
     km = meters / 1000.0
-    if miles >= 0.5:
-        return f"{meters:.0f} m ({km:.2f} km / {miles:.2f} mi)"
-    return f"{meters:.0f} m ({feet:.0f} ft)"
+    return f"{km:.3f}km ({miles:.2f} miles)"
 
 
 def find_farthest_point(points):
